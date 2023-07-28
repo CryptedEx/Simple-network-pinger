@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Network Pinger</title>
+</head>
+<body>
+    <h1>Network Pinger</h1>
+    <label for="host">Enter Hostname or IP:</label>
+    <input type="text" id="host" placeholder="example.com" required>
+    <button id="toggleButton" onclick="togglePinger()">Start Pinger</button>
+    <button id="stopButton" onclick="stopPinger()" disabled>Stop Pinger</button>
+    <div id="error" style="color: red;"></div>
+    <div id="loading" style="display: none;">Pinging...</div>
+    <div id="result"></div>
+
+    <h2>Console</h2>
+    <div id="console"></div>
+
+    <script>
+        let isPinging = false;
+        let intervalId;
+        let isThrottled = false;
+        const API_THROTTLE_INTERVAL = 2000; // Throttle interval in milliseconds
+
+        function togglePinger() {
+            const host = document.getElementById('host').value;
+
+            if (!host) {
+                document.getElementById('error').innerText = 'Please enter a valid hostname or IP.';
+                return;
+            }
+
+            document.getElementById('error').innerText = '';
+
+            if (isPinging) {
+                stopPinger();
+            } else {
+                startPinger(host);
+            }
+        }
+
+        function startPinger(host) {
+            isPinging = true;
+            document.getElementById('toggleButton').innerText = 'Stop Pinger';
+            document.getElementById('stopButton').disabled = false;
+
+            ping(host);
+        }
+
+        function stopPinger() {
+            clearInterval(intervalId);
+            isPinging = false;
+            document.getElementById('toggleButton').innerText = 'Start Pinger';
+            document.getElementById('stopButton').disabled = true;
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('result').innerText = '';
+        }
+
+        async function ping(host) {
+            if (isPinging) {
+                if (!isThrottled) {
+                    isThrottled = true;
+                    document.getElementById('loading').style.display = 'block';
+
+                    try {
+                        const response = await fetch(`http://ip-api.com/json/${host}`);
+                        const data = await response.json();
+
+                        if (data.status === 'success') {
+                            logToConsole(`${data.query} is reachable (Response time: ${data.latency} ms)`);
+                        } else {
+                            logToConsole(`${data.query} is unreachable`);
+                        }
+
+                        document.getElementById('loading').style.display = 'none';
+                    } catch (error) {
+                        logToConsole('Error: ' + error);
+                        document.getElementById('loading').style.display = 'none';
+                    }
+
+                    setTimeout(() => {
+                        isThrottled = false;
+                    }, API_THROTTLE_INTERVAL);
+                }
+
+                setTimeout(() => {
+                    ping(host); // Call the function recursively for continuous pinging
+                }, API_THROTTLE_INTERVAL);
+            }
+        }
+
+        function logToConsole(message) {
+            const consoleElement = document.getElementById('console');
+            const logEntry = document.createElement('p');
+            logEntry.textContent = message;
+            consoleElement.appendChild(logEntry);
+        }
+    </script>
+</body>
+</html>
