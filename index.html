@@ -63,7 +63,8 @@
                     document.getElementById('loading').style.display = 'block';
 
                     try {
-                        const response = await fetch(`http://ip-api.com/json/${host}`);
+                        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                        const response = await fetch(`${proxyUrl}http://ip-api.com/json/${host}`);
                         const data = await response.json();
 
                         if (data.status === 'success') {
