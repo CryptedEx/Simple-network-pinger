@@ -63,14 +63,13 @@
                     document.getElementById('loading').style.display = 'block';
 
                     try {
-                        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-                        const response = await fetch(`${proxyUrl}http://ip-api.com/json/${host}`);
+                        const response = await fetch(`https://ipinfo.io/${host}/json`);
                         const data = await response.json();
 
-                        if (data.status === 'success') {
-                            logToConsole(`${data.query} is reachable (Response time: ${data.latency} ms)`);
+                        if (data.ip) {
+                            logToConsole(`${data.ip} is reachable (Response time: ${data.ping || 'N/A'} ms)`);
                         } else {
-                            logToConsole(`${data.query} is unreachable`);
+                            logToConsole(`${host} is unreachable`);
                         }
 
                         document.getElementById('loading').style.display = 'none';
